@@ -8,6 +8,10 @@ declare global {
       setTheme: (theme: 'light' | 'dark' | 'system') => Promise<void>
     }
   }
+
+  interface GlobalThis {
+    quickl: QuicklBridge
+  }
 }
 
 export {}

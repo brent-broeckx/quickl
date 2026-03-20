@@ -1,0 +1,46 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Start Electron Dev",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "npm run dev:debug"
+        },
+        {
+            "name": "Attach Main",
+            "type": "pwa-node",
+            "request": "attach",
+            "port": 9229,
+            "restart": true,
+            "skipFiles": ["<node_internals>/**"]
+        },
+        {
+            "name": "Attach Renderer",
+            "type": "pwa-chrome",
+            "request": "attach",
+            "address": "127.0.0.1",
+            "port": 9222,
+            "webRoot": "${workspaceFolder}/src/renderer",
+            "urlFilter": "http://localhost:*/*",
+            "timeout": 30000
+        },
+        {
+            "name": "Attach Renderer (after window opens)",
+            "type": "pwa-chrome",
+            "request": "attach",
+            "address": "127.0.0.1",
+            "port": 9222,
+            "webRoot": "${workspaceFolder}/src/renderer",
+            "urlFilter": "http://localhost:*/*",
+            "timeout": 60000
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Debug Quickl (Main)",
+            "configurations": ["Start Electron Dev", "Attach Main"],
+            "stopAll": true
+        }
+    ]
+}

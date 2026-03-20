@@ -32,6 +32,9 @@ interface QuicklBridge {
     listModels: (id: string) => Promise<string[]>
     setApiKey: (id: string, key: string) => Promise<void>
     getApiKeyHint: (id: string) => Promise<string>
+    onStatusChanged: (
+      callback: (payload: { id: string; status: Provider['status']; latencyMs: number | null }) => void
+    ) => () => void
   }
   models: {
     list: () => Promise<LocalModel[]>
@@ -104,7 +107,15 @@ const bridge: QuicklBridge = {
     testConnection: (id) => ipcRenderer.invoke('providers:test-connection', id),
     listModels: (id) => ipcRenderer.invoke('providers:list-models', id),
     setApiKey: (id, key) => ipcRenderer.invoke('providers:set-api-key', id, key),
-    getApiKeyHint: (id) => ipcRenderer.invoke('providers:get-api-key-hint', id)
+    getApiKeyHint: (id) => ipcRenderer.invoke('providers:get-api-key-hint', id),
+    onStatusChanged: (callback): (() => void) => {
+      const listener = (
+        _event: unknown,
+        payload: { id: string; status: Provider['status']; latencyMs: number | null }
+      ): void => callback(payload)
+      ipcRenderer.on('quickl:provider-status-changed', listener)
+      return () => ipcRenderer.off('quickl:provider-status-changed', listener)
+    }
   },
 
   // =========================================================================

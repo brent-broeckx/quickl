@@ -18,6 +18,7 @@ export interface Provider {
   defaultModel: string | null
   status: 'online' | 'degraded' | 'offline' | 'unknown'
   lastLatencyMs: number | null
+  lastChecked: string | null
   createdAt: string
 }
 
@@ -241,6 +242,9 @@ export interface QuicklBridge {
     listModels(id: string): Promise<string[]>
     setApiKey(id: string, key: string): Promise<void>
     getApiKeyHint(id: string): Promise<string>
+    onStatusChanged(
+      callback: (payload: { id: string; status: Provider['status']; latencyMs: number | null }) => void
+    ): () => void
   }
   models: {
     list(): Promise<LocalModel[]>

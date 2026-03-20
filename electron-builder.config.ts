@@ -18,8 +18,6 @@ const config: Configuration = {
   },
   win: {
     target: ['nsis', 'portable'],
-    certificateFile: undefined,
-    certificatePassword: undefined,
     artifactName: '${productName}-${version}-${arch}.${ext}'
   },
   linux: {

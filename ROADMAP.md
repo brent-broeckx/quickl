@@ -126,7 +126,7 @@ v2.0.0  — Plugin System
 ### Tasks
 
 #### 1.1 — ProviderService (main process)
-- [ ] `ProviderService` class:
+- [x] `ProviderService` class:
   - `add(config)` — validates, stores metadata in electron-store, key in keytar
   - `update(id, config)` — partial update
   - `remove(id)` — deletes from store + keytar
@@ -135,7 +135,7 @@ v2.0.0  — Plugin System
   - `fetchModels(id)` — calls `/v1/models` or equivalent
   - `getKeyHint(id)` — retrieves from keytar, returns last 4 chars masked
 
-- [ ] Per-provider connection test logic:
+- [x] Per-provider connection test logic:
   - OpenAI: `GET /v1/models`
   - Anthropic: `POST /v1/messages` with minimal message
   - Ollama: `GET /api/tags`
@@ -143,25 +143,35 @@ v2.0.0  — Plugin System
   - Google: `GET /v1beta/models`
   - Custom: user-defined test endpoint
 
-- [ ] `HealthPoller` class:
+- [x] `HealthPoller` class:
   - `setInterval` polling per enabled provider
   - Configurable interval (default 30s)
   - Emits `provider-status-changed` IPC events on state change
   - Pauses on machine sleep via `electron.powerMonitor`
 
+  **Status:** Completed — 2026-03-20
+
 #### 1.2 — IPC Handlers
-- [ ] Register all `providers.*` IPC handlers
-- [ ] Type-safe handler registration helper that enforces return types
+- [x] Register all `providers.*` IPC handlers
+- [x] Type-safe handler registration helper that enforces return types
+
+**Status:** Completed — 2026-03-20
 
 #### 1.3 — Providers Page (renderer)
-- [ ] Provider list with status cards
-- [ ] Status indicator component (color dot + label + latency badge)
-- [ ] Add Provider modal: preset picker, API key field (masked), base URL, test button, save
-- [ ] Edit provider drawer
-- [ ] Delete confirmation dialog
-- [ ] Available Models expandable section (fetches on demand)
+- [x] Provider list with status cards
+- [x] Status indicator component (color dot + label + latency badge)
+- [x] Add Provider modal: preset picker, API key field (masked), base URL, test button, save
+- [x] Edit provider drawer
+- [x] Delete confirmation dialog
+- [x] Available Models expandable section (fetches on demand)
 
 **Exit criteria:** Can add OpenAI + Anthropic + Ollama. Keys survive restart. Health polling updates status. Delete works cleanly.
+
+**Status:** Completed — 2026-03-20
+
+**Notes:** Phase 1 manual validation performed (see `PHASE1-VALIDATION.md`). Ollama tested locally; OpenAI/Anthropic tests deferred (no API keys available). All implemented provider management flows, IPC handlers, keychain integration, health polling, and renderer UI were verified on a developer machine.
+
+**Completed:** 2026-03-20
 
 ---
 

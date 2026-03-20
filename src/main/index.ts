@@ -1,9 +1,10 @@
 import { app, BrowserWindow } from 'electron'
-import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
 import { store } from '@main/lib/store'
 import { logger } from '@main/lib/logger'
 import { setupIPCHandlers } from '@main/ipc'
+import { healthPoller } from '@main/services/health-poller'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -49,9 +50,10 @@ function createWindow(): void {
   }
 
   // Load the app
-  const isDev = !app.isPackaged
+  const devServerUrl = process.env.ELECTRON_RENDERER_URL
+  const isDev = !app.isPackaged && !!devServerUrl
   const url = isDev
-    ? 'http://localhost:5173'
+    ? devServerUrl
     : `file://${join(__dirname, '../renderer/index.html')}`
 
   mainWindow.loadURL(url)
@@ -93,6 +95,9 @@ app.on('ready', () => {
   // Setup IPC handlers
   setupIPCHandlers()
 
+  // Start background provider health polling.
+  healthPoller.start()
+
   // Create window
   createWindow()
 })
@@ -100,8 +105,13 @@ app.on('ready', () => {
 app.on('window-all-closed', () => {
   // On macOS, applications typically stay open until user quits explicitly
   if (process.platform !== 'darwin') {
+    healthPoller.stop()
     app.quit()
   }
+})
+
+app.on('before-quit', () => {
+  healthPoller.stop()
 })
 
 app.on('activate', () => {
@@ -128,4 +138,6 @@ app.on('web-contents-created', (_event, contents) => {
   })
 })
 
-export { mainWindow }
+export function getMainWindow(): BrowserWindow | null {
+  return mainWindow
+}
