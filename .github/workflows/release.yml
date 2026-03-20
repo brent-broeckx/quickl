@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        include:
+          - os: macos-latest
+            artifact_name: Quickl-*.dmg
+          - os: windows-latest
+            artifact_name: Quickl-*.exe
+          - os: ubuntu-latest
+            artifact_name: Quickl-*.AppImage
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Create release assets (macOS)
+        if: runner.os == 'macOS'
+        run: npm run dist:mac
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+
+      - name: Create release assets (Windows)
+        if: runner.os == 'Windows'
+        run: npm run dist:win
+
+      - name: Create release assets (Linux)
+        if: runner.os == 'Linux'
+        run: npm run dist:linux
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            release/${{ matrix.artifact_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
