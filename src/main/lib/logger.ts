@@ -85,7 +85,7 @@ export class Logger {
       windows.forEach((window) => {
         window.webContents.send('quickl:log-entry', entry)
       })
-    } catch (err) {
+    } catch {
       // Silently fail if no window available
     }
   }

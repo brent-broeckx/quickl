@@ -185,36 +185,39 @@ v2.0.0  — Plugin System
 ### Tasks
 
 #### 2.1 — ModelService (main process)
-- [ ] `ModelService`:
+- [x] `ModelService`:
   - `listInstalled()` — queries Ollama API + LM Studio API, merges and normalizes
   - `pull(name)` — streams progress from Ollama `/api/pull`, emits progress events
   - `delete(runtime, name)` — calls Ollama delete endpoint
   - `load(name)` — warms model via generate endpoint with keep_alive
   - `unload(name)` — sets keep_alive to 0
 
-- [ ] `ResourceMonitor`:
+- [x] `ResourceMonitor`:
   - RAM: `os.totalmem()` / `os.freemem()`
   - VRAM NVIDIA: parse `nvidia-smi --query-gpu=memory.total,memory.used --format=csv`
   - VRAM macOS Apple Silicon: `ioreg` query (best-effort)
   - VRAM AMD: `rocm-smi` (best-effort)
   - Push updates every 5s when Models page is open
 
-- [ ] `OllamaRegistryClient`:
+- [x] `OllamaRegistryClient`:
   - Fetch model list from Ollama library
   - Cache for 1 hour in electron-store
 
 #### 2.2 — Models Page (renderer)
-- [ ] Installed models grid with full info cards
-- [ ] Load/Unload toggle, Delete with confirmation, Tag editor
-- [ ] Model Discovery tab: search, filter, pull button, progress bar
-- [ ] Resource Monitor widget in sidebar
+- [x] Installed models grid with full info cards
+- [x] Load/Unload toggle, Delete with confirmation, Tag editor
+- [x] Model Discovery tab: search, filter, pull button, progress bar
+- [x] Resource Monitor widget in sidebar
 
 #### 2.3 — Ollama Daemon Management
-- [ ] Detect if Ollama installed but not running → offer to start from Quickl
-- [ ] Show install prompt if Ollama not found
-- [ ] Monitor Ollama process health
+- [x] Detect if Ollama installed but not running → offer to start from Quickl
+- [x] Show install prompt if Ollama not found
+- [x] Monitor Ollama process health
 
 **Exit criteria:** Can see installed models, pull with progress, load/unload, see VRAM usage.
+
+Completed: 2026-03-20
+Version tag: v0.3.0-alpha
 
 ---
 

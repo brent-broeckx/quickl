@@ -5,6 +5,7 @@ import { store } from '@main/lib/store'
 import { logger } from '@main/lib/logger'
 import { setupIPCHandlers } from '@main/ipc'
 import { healthPoller } from '@main/services/health-poller'
+import { daemonManager } from '@main/services/daemon-manager'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -112,6 +113,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   healthPoller.stop()
+  daemonManager.stopManagedOllama()
 })
 
 app.on('activate', () => {

@@ -1,25 +1,27 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type {
-  Provider,
-  LocalModel,
-  IDE,
-  MCPServer,
-  MCPTool,
-  GuardrailSet,
-  GuardrailLogEntry,
-  GuardrailLogFilter,
-  Profile,
-  ProfileConfig,
-  LogEntry,
-  LogFilter,
-  ResourceStats,
-  ProxyStatus,
-  ConfigDiff,
-  AddProviderInput,
-  MCPCatalogEntry,
-  AddMCPInput,
-  DiagnosticsReport,
-  UpdateCheckResult
+    Provider,
+    LocalModel,
+    IDE,
+    MCPServer,
+    MCPTool,
+    GuardrailSet,
+    GuardrailLogEntry,
+    GuardrailLogFilter,
+    Profile,
+    ProfileConfig,
+    LogEntry,
+    LogFilter,
+    ResourceStats,
+    ModelPullProgress,
+    ProxyStatus,
+    ConfigDiff,
+    AddProviderInput,
+    OllamaRegistryModel,
+    MCPCatalogEntry,
+    AddMCPInput,
+    DiagnosticsReport,
+    UpdateCheckResult
 } from '@shared/types'
 
 interface QuicklBridge {
@@ -38,12 +40,23 @@ interface QuicklBridge {
   }
   models: {
     list: () => Promise<LocalModel[]>
-    pull: (runtime: string, name: string) => Promise<void>
+    pull: (name: string) => Promise<void>
     remove: (runtime: string, name: string) => Promise<void>
-    load: (runtime: string, name: string) => Promise<void>
-    unload: (runtime: string, name: string) => Promise<void>
-    getResourceStats: () => Promise<ResourceStats>
-    search: (query: string) => Promise<unknown[]>
+    load: (name: string) => Promise<void>
+    unload: (name: string) => Promise<void>
+    getStats: () => Promise<ResourceStats>
+    search: (query: string) => Promise<OllamaRegistryModel[]>
+    getTags: (modelId: string) => Promise<string[]>
+    addTag: (modelId: string, tag: string) => Promise<string[]>
+    removeTag: (modelId: string, tag: string) => Promise<string[]>
+    startResourceMonitor: () => Promise<void>
+    stopResourceMonitor: () => Promise<void>
+    onPullProgress: (callback: (progress: ModelPullProgress) => void) => () => void
+    onResourceStats: (callback: (stats: ResourceStats) => void) => () => void
+  }
+  daemon: {
+    getOllamaStatus: () => Promise<'running' | 'stopped' | 'not-installed'>
+    startOllama: () => Promise<void>
   }
   ides: {
     list: () => Promise<IDE[]>
@@ -90,6 +103,7 @@ interface QuicklBridge {
   system: {
     getDiagnostics: () => Promise<DiagnosticsReport>
     openDataDirectory: () => Promise<void>
+    openExternal: (url: string) => Promise<void>
     checkForUpdates: () => Promise<UpdateCheckResult>
     getVersion: () => Promise<string>
   }
@@ -123,12 +137,32 @@ const bridge: QuicklBridge = {
   // =========================================================================
   models: {
     list: () => ipcRenderer.invoke('models:list'),
-    pull: (runtime, name) => ipcRenderer.invoke('models:pull', runtime, name),
+    pull: (name) => ipcRenderer.invoke('models:pull', name),
     remove: (runtime, name) => ipcRenderer.invoke('models:remove', runtime, name),
-    load: (runtime, name) => ipcRenderer.invoke('models:load', runtime, name),
-    unload: (runtime, name) => ipcRenderer.invoke('models:unload', runtime, name),
-    getResourceStats: () => ipcRenderer.invoke('models:get-resource-stats'),
-    search: (query) => ipcRenderer.invoke('models:search', query)
+    load: (name) => ipcRenderer.invoke('models:load', name),
+    unload: (name) => ipcRenderer.invoke('models:unload', name),
+    getStats: () => ipcRenderer.invoke('models:getStats'),
+    search: (query) => ipcRenderer.invoke('models:search', query),
+    getTags: (modelId) => ipcRenderer.invoke('models:getTags', modelId),
+    addTag: (modelId, tag) => ipcRenderer.invoke('models:addTag', modelId, tag),
+    removeTag: (modelId, tag) => ipcRenderer.invoke('models:removeTag', modelId, tag),
+    startResourceMonitor: () => ipcRenderer.invoke('resource-monitor:start'),
+    stopResourceMonitor: () => ipcRenderer.invoke('resource-monitor:stop'),
+    onPullProgress: (callback): (() => void) => {
+      const listener = (_event: unknown, progress: ModelPullProgress): void => callback(progress)
+      ipcRenderer.on('quickl:model-pull-progress', listener)
+      return () => ipcRenderer.off('quickl:model-pull-progress', listener)
+    },
+    onResourceStats: (callback): (() => void) => {
+      const listener = (_event: unknown, stats: ResourceStats): void => callback(stats)
+      ipcRenderer.on('quickl:resource-stats', listener)
+      return () => ipcRenderer.off('quickl:resource-stats', listener)
+    }
+  },
+
+  daemon: {
+    getOllamaStatus: () => ipcRenderer.invoke('daemon:ollamaStatus'),
+    startOllama: () => ipcRenderer.invoke('daemon:startOllama')
   },
 
   // =========================================================================
@@ -212,6 +246,7 @@ const bridge: QuicklBridge = {
   system: {
     getDiagnostics: () => ipcRenderer.invoke('system:get-diagnostics'),
     openDataDirectory: () => ipcRenderer.invoke('system:open-data-directory'),
+    openExternal: (url) => ipcRenderer.invoke('system:open-external', url),
     checkForUpdates: () => ipcRenderer.invoke('system:check-for-updates'),
     getVersion: () => ipcRenderer.invoke('system:get-version')
   }

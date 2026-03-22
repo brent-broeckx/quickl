@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Provider } from '@shared/types'
 import { useProvidersStore } from '@renderer/stores/use-providers.store'
+import { useModelsStore } from '@renderer/stores/use-models.store'
 
 type ActivityEvent = {
   id: string
@@ -25,12 +26,17 @@ export function Dashboard(): React.ReactElement {
   const navigate = useNavigate()
   const providers = useProvidersStore((state) => state.providers)
   const fetchProviders = useProvidersStore((state) => state.fetchProviders)
+  const models = useModelsStore((state) => state.models)
+  const modelEvents = useModelsStore((state) => state.activityEvents)
+  const resourceStats = useModelsStore((state) => state.resourceStats)
+  const fetchModels = useModelsStore((state) => state.fetchModels)
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const previousProvidersRef = useRef<Provider[]>([])
 
   useEffect(() => {
     void fetchProviders()
-  }, [fetchProviders])
+    void fetchModels()
+  }, [fetchModels, fetchProviders])
 
   useEffect(() => {
     const previousById = new Map(previousProvidersRef.current.map((provider) => [provider.id, provider]))
@@ -78,15 +84,30 @@ export function Dashboard(): React.ReactElement {
     }
 
     if (nextEvents.length > 0) {
-      setEvents((current) => [...nextEvents, ...current].slice(0, 20))
+      previousProvidersRef.current = providers
+      const timer = setTimeout(() => {
+        setEvents((current) => [...nextEvents, ...current].slice(0, 20))
+      }, 0)
+      return () => clearTimeout(timer)
     }
 
     previousProvidersRef.current = providers
+    return undefined
   }, [providers])
 
   const onlineCount = useMemo(
     () => providers.filter((provider) => provider.status === 'online').length,
     [providers]
+  )
+
+  const loadedModelCount = useMemo(
+    () => models.filter((model) => model.status === 'loaded').length,
+    [models]
+  )
+
+  const combinedEvents = useMemo(
+    () => [...events, ...modelEvents].sort((a, b) => b.timestamp.localeCompare(a.timestamp)).slice(0, 20),
+    [events, modelEvents]
   )
 
   return (
@@ -104,19 +125,37 @@ export function Dashboard(): React.ReactElement {
             <p className="mt-2 text-3xl font-semibold">{providers.length}</p>
             <p className="mt-2 text-sm text-muted-foreground">Healthy: {onlineCount}</p>
           </button>
+
+          <button
+            className="rounded-xl border border-blue-200 bg-blue-50 p-5 text-left shadow-sm dark:border-blue-900 dark:bg-blue-950/40"
+            onClick={() => navigate('/models')}
+            type="button"
+          >
+            <p className="text-sm font-medium text-muted-foreground">Models</p>
+            <p className="mt-2 text-3xl font-semibold">{models.length}</p>
+            <p className="mt-2 text-sm text-muted-foreground">Loaded: {loadedModelCount}</p>
+            {resourceStats?.vramTotalMb !== null && resourceStats?.vramTotalMb !== undefined && resourceStats?.vramUsedMb !== null ? (
+              <div className="mt-3 h-2 rounded-full bg-blue-100 dark:bg-blue-900/60">
+                <div
+                  className="h-full rounded-full bg-blue-500"
+                  style={{ width: `${Math.min(100, Math.round((resourceStats.vramUsedMb / resourceStats.vramTotalMb) * 100))}%` }}
+                />
+              </div>
+            ) : null}
+          </button>
         </section>
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-semibold">Activity Feed</h2>
-            <span className="text-xs text-muted-foreground">Last {events.length} events</span>
+            <span className="text-xs text-muted-foreground">Last {combinedEvents.length} events</span>
           </div>
 
-          {events.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No provider events yet.</p>
+          {combinedEvents.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No provider or model events yet.</p>
           ) : (
             <ul className="space-y-2">
-              {events.map((event) => (
+              {combinedEvents.map((event) => (
                 <li key={event.id} className="rounded-md bg-zinc-50 px-3 py-2 text-sm dark:bg-zinc-900">
                   <div className="font-medium">{event.message}</div>
                   <div className="text-xs text-muted-foreground">{new Date(event.timestamp).toLocaleString()}</div>

@@ -98,7 +98,6 @@ export class ProviderService {
     const apiKey = await this.getStoredApiKey(provider)
     const headers: Record<string, string> = {}
 
-    debugger;
     if (
       apiKey &&
       (kind === 'openai' || kind === 'mistral' || kind === 'groq' || kind === 'lmstudio' || kind === 'vllm' || kind === 'custom')

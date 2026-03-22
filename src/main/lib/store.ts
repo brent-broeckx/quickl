@@ -1,10 +1,10 @@
 import Store from 'electron-store'
 import type {
-  Provider,
-  LocalModel,
-  IDE,
-  MCPServer,
-  Profile
+    Provider,
+    LocalModel,
+    IDE,
+    MCPServer,
+    Profile
 } from '@shared/types'
 
 /**
@@ -40,6 +40,18 @@ interface StoreSchema {
   onboarding: {
     completed: boolean
   }
+  modelRegistryCache: {
+    query: string
+    timestamp: number
+    results: {
+      name: string
+      description: string
+      pulls: number
+      tags: string[]
+      sizes: string[]
+    }[]
+  } | null
+  modelTags: Record<string, string[]>
 }
 
 const defaultStore: StoreSchema = {
@@ -71,7 +83,9 @@ const defaultStore: StoreSchema = {
   },
   onboarding: {
     completed: false
-  }
+  },
+  modelRegistryCache: null,
+  modelTags: {}
 }
 
 /**
@@ -138,6 +152,14 @@ export const store = new Store<StoreSchema>({
       properties: {
         completed: { type: 'boolean' }
       }
+    },
+    modelRegistryCache: {
+      type: ['object', 'null'],
+      default: null
+    },
+    modelTags: {
+      type: 'object',
+      default: {}
     }
   }
 })

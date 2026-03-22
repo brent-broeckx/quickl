@@ -9,6 +9,10 @@ export function registerSystemHandlers(): void {
     await shell.openPath(app.getPath('userData'))
   })
 
+  ipcMain.handle('system:open-external', async (_event, url: string): Promise<void> => {
+    await shell.openExternal(url)
+  })
+
   ipcMain.handle('system:check-for-updates', async (): Promise<{ available: boolean; version?: string }> => {
     return { available: false }
   })

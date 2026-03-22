@@ -42,6 +42,22 @@ export interface LocalModel {
   tags: string[]
 }
 
+export interface OllamaRegistryModel {
+  name: string
+  description: string
+  pulls: number
+  tags: string[]
+  sizes: string[]
+}
+
+export interface ModelPullProgress {
+  name: string
+  status: string
+  progress: number
+  completed: number | null
+  total: number | null
+}
+
 // ============================================================================
 // IDEs
 // ============================================================================
@@ -248,12 +264,23 @@ export interface QuicklBridge {
   }
   models: {
     list(): Promise<LocalModel[]>
-    pull(runtime: string, name: string): Promise<void>
+    pull(name: string): Promise<void>
     remove(runtime: string, name: string): Promise<void>
-    load(runtime: string, name: string): Promise<void>
-    unload(runtime: string, name: string): Promise<void>
-    getResourceStats(): Promise<ResourceStats>
-    search(query: string): Promise<unknown[]>
+    load(name: string): Promise<void>
+    unload(name: string): Promise<void>
+    getStats(): Promise<ResourceStats>
+    search(query: string): Promise<OllamaRegistryModel[]>
+    getTags(modelId: string): Promise<string[]>
+    addTag(modelId: string, tag: string): Promise<string[]>
+    removeTag(modelId: string, tag: string): Promise<string[]>
+    startResourceMonitor(): Promise<void>
+    stopResourceMonitor(): Promise<void>
+    onPullProgress(callback: (progress: ModelPullProgress) => void): () => void
+    onResourceStats(callback: (stats: ResourceStats) => void): () => void
+  }
+  daemon: {
+    getOllamaStatus(): Promise<'running' | 'stopped' | 'not-installed'>
+    startOllama(): Promise<void>
   }
   ides: {
     list(): Promise<IDE[]>
@@ -300,6 +327,7 @@ export interface QuicklBridge {
   system: {
     getDiagnostics(): Promise<DiagnosticsReport>
     openDataDirectory(): Promise<void>
+    openExternal(url: string): Promise<void>
     checkForUpdates(): Promise<UpdateCheckResult>
     getVersion(): Promise<string>
   }

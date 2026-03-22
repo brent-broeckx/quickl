@@ -1,5 +1,5 @@
 import { registerProviderHandlers } from '@main/ipc/providers.handler'
-import { registerModelHandlers } from '@main/ipc/models'
+import { registerModelHandlers } from '@main/ipc/models.handler'
 import { registerIDEHandlers } from '@main/ipc/ides'
 import { registerMCPHandlers } from '@main/ipc/mcp'
 import { registerGuardrailHandlers } from '@main/ipc/guardrails'
