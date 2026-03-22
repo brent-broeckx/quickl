@@ -9,7 +9,7 @@ type OllamaStatus = 'running' | 'stopped' | 'not-installed'
 
 const OLLAMA_TAGS_URL = 'http://localhost:11434/api/tags'
 
-async function isValidOllamaTagsEndpoint(url: string, timeoutMs: number): Promise<boolean> {
+async function fetchWithTimeout(url: string, timeoutMs: number): Promise<boolean> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), timeoutMs)
 
@@ -19,17 +19,7 @@ async function isValidOllamaTagsEndpoint(url: string, timeoutMs: number): Promis
       signal: controller.signal
     })
 
-    if (!response.ok) {
-      return false
-    }
-
-    const contentType = (response.headers.get('content-type') || '').toLowerCase()
-    if (!contentType.includes('application/json')) {
-      return false
-    }
-
-    const payload = (await response.json()) as { models?: unknown }
-    return Array.isArray(payload.models)
+    return response.ok
   } catch (error) {
     if (error instanceof AbortError) {
       return false
@@ -119,7 +109,7 @@ export class DaemonManager {
   }
 
   public async isOllamaRunning(): Promise<boolean> {
-    return await isValidOllamaTagsEndpoint(OLLAMA_TAGS_URL, 1000)
+    return await fetchWithTimeout(OLLAMA_TAGS_URL, 1000)
   }
 
   public async startOllama(): Promise<void> {
