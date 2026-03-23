@@ -134,7 +134,7 @@ export class DaemonManager {
     child.unref()
 
     const start = Date.now()
-    while (Date.now() - start < 5000) {
+    while (Date.now() - start < 10000) {
       if (await this.isOllamaRunning()) {
         logger.info('system', 'Ollama started successfully')
         return
