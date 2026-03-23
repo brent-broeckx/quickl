@@ -99,6 +99,17 @@ interface QuicklBridge {
   proxy: {
     getStatus: () => Promise<ProxyStatus>
     restart: () => Promise<void>
+    getPorts: () => Promise<{ providerPort: number; mcpPort: number }>
+    setPorts: (ports: { providerPort: number; mcpPort: number }) => Promise<void>
+    onPortConflict: (
+      callback: (payload: { port: number; service: 'provider' | 'mcp' }) => void
+    ) => () => void
+    onMcpClientConnected: (
+      callback: (client: { id: string; name: string; version: string; transport: 'http' | 'sse'; connectedAt: string }) => void
+    ) => () => void
+    onRequest: (
+      callback: (payload: { method: string; path: string; status: number; latencyMs: number }) => void
+    ) => () => void
   }
   system: {
     getDiagnostics: () => Promise<DiagnosticsReport>
@@ -237,7 +248,33 @@ const bridge: QuicklBridge = {
   // =========================================================================
   proxy: {
     getStatus: () => ipcRenderer.invoke('proxy:get-status'),
-    restart: () => ipcRenderer.invoke('proxy:restart')
+    restart: () => ipcRenderer.invoke('proxy:restart'),
+    getPorts: () => ipcRenderer.invoke('proxy:get-ports'),
+    setPorts: (ports) => ipcRenderer.invoke('proxy:set-ports', ports),
+    onPortConflict: (callback): (() => void) => {
+      const listener = (
+        _event: unknown,
+        payload: { port: number; service: 'provider' | 'mcp' }
+      ): void => callback(payload)
+      ipcRenderer.on('quickl:proxy-port-conflict', listener)
+      return () => ipcRenderer.off('quickl:proxy-port-conflict', listener)
+    },
+    onMcpClientConnected: (callback): (() => void) => {
+      const listener = (
+        _event: unknown,
+        client: { id: string; name: string; version: string; transport: 'http' | 'sse'; connectedAt: string }
+      ): void => callback(client)
+      ipcRenderer.on('quickl:mcp-client-connected', listener)
+      return () => ipcRenderer.off('quickl:mcp-client-connected', listener)
+    },
+    onRequest: (callback): (() => void) => {
+      const listener = (
+        _event: unknown,
+        payload: { method: string; path: string; status: number; latencyMs: number }
+      ): void => callback(payload)
+      ipcRenderer.on('quickl:proxy-request', listener)
+      return () => ipcRenderer.off('quickl:proxy-request', listener)
+    }
   },
 
   // =========================================================================

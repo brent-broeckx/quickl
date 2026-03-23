@@ -6,6 +6,7 @@ import { logger } from '@main/lib/logger'
 import { setupIPCHandlers } from '@main/ipc'
 import { healthPoller } from '@main/services/health-poller'
 import { daemonManager } from '@main/services/daemon-manager'
+import { proxyService } from '@main/proxy/proxy.service'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -90,7 +91,7 @@ function createWindow(): void {
 /**
  * App lifecycle
  */
-app.on('ready', () => {
+app.on('ready', async () => {
   logger.info('system', 'Application starting', { version: app.getVersion() })
 
   // Setup IPC handlers
@@ -98,6 +99,14 @@ app.on('ready', () => {
 
   // Start background provider health polling.
   healthPoller.start()
+
+  try {
+    await proxyService.start()
+  } catch (error) {
+    logger.error('proxy', 'Failed to start proxy services', {
+      error: error instanceof Error ? error.message : 'Unknown error'
+    })
+  }
 
   // Create window
   createWindow()
@@ -113,6 +122,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   healthPoller.stop()
+  void proxyService.stop()
   daemonManager.stopManagedOllama()
 })
 

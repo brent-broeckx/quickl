@@ -237,6 +237,27 @@ export interface ProxyStatus {
   }
 }
 
+export interface TranslatedRequest {
+  url: string
+  method: string
+  headers: Record<string, string>
+  body: string
+}
+
+export interface TranslatedResponse {
+  status: number
+  headers: Record<string, string>
+  body: string | NodeJS.ReadableStream
+}
+
+export interface ConnectedMCPClient {
+  id: string
+  name: string
+  version: string
+  transport: 'http' | 'sse'
+  connectedAt: string
+}
+
 export type DiagnosticsReport = Record<string, unknown>
 
 export type UpdateCheckResult = {
@@ -323,6 +344,15 @@ export interface QuicklBridge {
   proxy: {
     getStatus(): Promise<ProxyStatus>
     restart(): Promise<void>
+    getPorts(): Promise<{ providerPort: number; mcpPort: number }>
+    setPorts(ports: { providerPort: number; mcpPort: number }): Promise<void>
+    onPortConflict(
+      callback: (payload: { port: number; service: 'provider' | 'mcp' }) => void
+    ): () => void
+    onMcpClientConnected(callback: (client: ConnectedMCPClient) => void): () => void
+    onRequest(
+      callback: (payload: { method: string; path: string; status: number; latencyMs: number }) => void
+    ): () => void
   }
   system: {
     getDiagnostics(): Promise<DiagnosticsReport>

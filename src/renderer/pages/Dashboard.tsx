@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import type { Provider } from '@shared/types'
 import { useProvidersStore } from '@renderer/stores/use-providers.store'
 import { useModelsStore } from '@renderer/stores/use-models.store'
+import { useProxyStore } from '@renderer/stores/use-proxy.store'
 
 type ActivityEvent = {
   id: string
@@ -30,6 +31,7 @@ export function Dashboard(): React.ReactElement {
   const modelEvents = useModelsStore((state) => state.activityEvents)
   const resourceStats = useModelsStore((state) => state.resourceStats)
   const fetchModels = useModelsStore((state) => state.fetchModels)
+  const proxyStatus = useProxyStore((state) => state.status)
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const previousProvidersRef = useRef<Provider[]>([])
 
@@ -142,6 +144,26 @@ export function Dashboard(): React.ReactElement {
                 />
               </div>
             ) : null}
+          </button>
+
+          <button
+            className="rounded-xl border border-violet-200 bg-violet-50 p-5 text-left shadow-sm dark:border-violet-900 dark:bg-violet-950/40"
+            onClick={() => navigate('/settings?section=proxy')}
+            type="button"
+          >
+            <p className="text-sm font-medium text-muted-foreground">Proxy</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Provider proxy: {proxyStatus?.providerProxy.running ? 'running' : 'offline'}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              MCP aggregator: {proxyStatus?.mcpAggregator.running ? 'running' : 'offline'}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Requests: {proxyStatus?.providerProxy.requestCount ?? 0}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              MCP clients: {proxyStatus?.mcpAggregator.connectedClients ?? 0}
+            </p>
           </button>
         </section>
 

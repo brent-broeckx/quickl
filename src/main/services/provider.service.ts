@@ -271,6 +271,15 @@ export class ProviderService {
     return `sk-...${last4}`
   }
 
+  public async getRawKey(id: string): Promise<string | null> {
+    const provider = this.findProvider(id)
+    if (provider.authType !== 'api-key' && provider.authType !== 'bearer') {
+      return null
+    }
+
+    return keytar.getPassword(KEYCHAIN_SERVICE_NAME, id)
+  }
+
   public async testConnection(id: string): Promise<ConnectionResult> {
     const provider = this.findProvider(id)
     const startedAt = Date.now()
