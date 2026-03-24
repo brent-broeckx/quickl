@@ -32,12 +32,21 @@ export function Dashboard(): React.ReactElement {
   const resourceStats = useModelsStore((state) => state.resourceStats)
   const fetchModels = useModelsStore((state) => state.fetchModels)
   const proxyStatus = useProxyStore((state) => state.status)
+  const [ideStats, setIdeStats] = useState<{ total: number; configured: number }>({ total: 0, configured: 0 })
   const [events, setEvents] = useState<ActivityEvent[]>([])
   const previousProvidersRef = useRef<Provider[]>([])
 
   useEffect(() => {
     void fetchProviders()
     void fetchModels()
+
+    void (async () => {
+      const ides = await window.quickl.ides.list()
+      setIdeStats({
+        total: ides.length,
+        configured: ides.filter((ide) => ide.configuredByQuickl).length
+      })
+    })()
   }, [fetchModels, fetchProviders])
 
   useEffect(() => {
@@ -163,6 +172,18 @@ export function Dashboard(): React.ReactElement {
             </p>
             <p className="text-sm text-muted-foreground">
               MCP clients: {proxyStatus?.mcpAggregator.connectedClients ?? 0}
+            </p>
+          </button>
+
+          <button
+            className="rounded-xl border border-indigo-200 bg-indigo-50 p-5 text-left shadow-sm dark:border-indigo-900 dark:bg-indigo-950/40"
+            onClick={() => navigate('/ides')}
+            type="button"
+          >
+            <p className="text-sm font-medium text-muted-foreground">IDEs</p>
+            <p className="mt-2 text-3xl font-semibold">{ideStats.total}</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Configured by Quickl: {ideStats.configured}
             </p>
           </button>
         </section>

@@ -1,27 +1,28 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type {
-    Provider,
-    LocalModel,
-    IDE,
-    MCPServer,
-    MCPTool,
-    GuardrailSet,
-    GuardrailLogEntry,
-    GuardrailLogFilter,
-    Profile,
-    ProfileConfig,
-    LogEntry,
-    LogFilter,
-    ResourceStats,
-    ModelPullProgress,
-    ProxyStatus,
-    ConfigDiff,
-    AddProviderInput,
-    OllamaRegistryModel,
-    MCPCatalogEntry,
-    AddMCPInput,
-    DiagnosticsReport,
-    UpdateCheckResult
+  Provider,
+  LocalModel,
+  IDE,
+  MCPServer,
+  MCPTool,
+  GuardrailSet,
+  GuardrailLogEntry,
+  GuardrailLogFilter,
+  Profile,
+  ProfileConfig,
+  LogEntry,
+  LogFilter,
+  ResourceStats,
+  ModelPullProgress,
+  ProxyStatus,
+  ConfigDiff,
+  IDEBackup,
+  AddProviderInput,
+  OllamaRegistryModel,
+  MCPCatalogEntry,
+  AddMCPInput,
+  DiagnosticsReport,
+  UpdateCheckResult
 } from '@shared/types'
 
 interface QuicklBridge {
@@ -64,6 +65,8 @@ interface QuicklBridge {
     configure: (ideId: string, providerId: string) => Promise<ConfigDiff>
     applyConfig: (ideId: string, diff: ConfigDiff) => Promise<void>
     resetConfig: (ideId: string) => Promise<void>
+    listBackups: (ideId: string) => Promise<IDEBackup[]>
+    restoreBackup: (ideId: string, backupPath: string) => Promise<void>
   }
   mcp: {
     list: () => Promise<MCPServer[]>
@@ -185,7 +188,9 @@ const bridge: QuicklBridge = {
     configure: (ideId, providerId) =>
       ipcRenderer.invoke('ides:configure', ideId, providerId),
     applyConfig: (ideId, diff) => ipcRenderer.invoke('ides:apply-config', ideId, diff),
-    resetConfig: (ideId) => ipcRenderer.invoke('ides:reset-config', ideId)
+    resetConfig: (ideId) => ipcRenderer.invoke('ides:reset-config', ideId),
+    listBackups: (ideId) => ipcRenderer.invoke('ides:list-backups', ideId),
+    restoreBackup: (ideId, backupPath) => ipcRenderer.invoke('ides:restore-backup', ideId, backupPath)
   },
 
   // =========================================================================

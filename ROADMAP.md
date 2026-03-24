@@ -302,17 +302,17 @@ The aggregator must support two MCP transports. Streamable HTTP is the current M
 ### Tasks
 
 #### 4.1 — IDE Detection Engine
-- [ ] `IDEDetector` service scanning all known paths per OS:
+- [x] `IDEDetector` service scanning all known paths per OS:
   - macOS: `/Applications/*.app`, `~/Library/Application Support/`, `~/.config/`
   - Windows: `%LOCALAPPDATA%`, `%APPDATA%`, `%USERPROFILE%/`
   - Linux: `~/.local/share/`, `~/.config/`, `~/snap/`
-- [ ] Per-IDE detectors: VS Code, Cursor, Windsurf, JetBrains (all products), Zed, Neovim
-- [ ] Extension detection: scan extension dirs for known AI extension IDs
-- [ ] Cache results, re-scan on demand
+- [x] Per-IDE detectors: VS Code, Cursor, Windsurf, JetBrains (all products), Zed, Neovim
+- [x] Extension detection: scan extension dirs for known AI extension IDs
+- [x] Cache results, re-scan on demand
 
 #### 4.2 — Config Writers
 
-- [ ] Abstract `ConfigWriter` interface:
+- [x] Abstract `ConfigWriter` interface:
   ```typescript
   interface ConfigWriter {
     read(idePath: string): Promise<unknown>;
@@ -323,29 +323,29 @@ The aggregator must support two MCP transports. Streamable HTTP is the current M
   }
   ```
 
-- [ ] Transport selector utility:
+- [x] Transport selector utility:
   - Given IDE type + detected version, returns `'http'` (Streamable HTTP) or `'sse'` (fallback)
   - Defaults to `'http'` for all primary targets (Cursor, VS Code + Copilot, Continue.dev)
   - Defaults to `'sse'` for any unrecognized or older client version
 
-- [ ] Implement config writers for **primary MVP targets** — all point at `localhost:3820` (provider proxy) and `localhost:3821` (MCP aggregator) using the transport selector:
+- [x] Implement config writers for **primary MVP targets** — all point at `localhost:3820` (provider proxy) and `localhost:3821` (MCP aggregator) using the transport selector:
   - **VS Code + Continue.dev** — `~/.continue/config.json`, Streamable HTTP
   - **VS Code + Cline** — `settings.json` cline entries, provider proxy only
   - **VS Code + GitHub Copilot** — `.vscode/mcp.json` or user settings, Streamable HTTP for MCP tools. Note: Copilot completions cannot be proxied — only MCP tool/agent calls are configured.
   - **Cursor** — `~/.cursor/mcp.json` + settings, Streamable HTTP
   - **Windsurf** — `~/.codeium/windsurf/` settings, Streamable HTTP
 
-- [ ] **Zed, JetBrains, Neovim** — detection only in MVP (show as "detected, config support coming in v1.2.0"). No config writers in MVP.
+- [x] **Zed, JetBrains, Neovim** — detection only in MVP (show as "detected, config support coming in v1.2.0"). No config writers in MVP.
 
 #### 4.3 — Diff Preview Component
-- [ ] `DiffViewer` React component: side-by-side before/after, syntax highlighted, line-by-line added/removed
-- [ ] IPC: `configure()` returns diff object (not applied yet), `applyConfig()` applies it
-- [ ] Atomic write + backup on apply
+- [x] `DiffViewer` React component: side-by-side before/after, syntax highlighted, line-by-line added/removed
+- [x] IPC: `configure()` returns diff object (not applied yet), `applyConfig()` applies it
+- [x] Atomic write + backup on apply
 
 #### 4.4 — IDEs Page (renderer)
-- [ ] IDE grid: card per detected IDE with logo, version, status, detected extensions
-- [ ] "Scan for IDEs" button
-- [ ] Per-IDE detail: current config preview, configure flow, backup history with restore
+- [x] IDE grid: card per detected IDE with logo, version, status, detected extensions
+- [x] "Scan for IDEs" button
+- [x] Per-IDE detail: current config preview, configure flow, backup history with restore
 
 **Exit criteria:** Can scan and detect all installed IDEs (including Zed, JetBrains — shown as detected but not yet configurable). Can configure VS Code + Continue.dev, VS Code + Copilot MCP, and Cursor with diff preview. Streamable HTTP used by default, SSE fallback works. Backup and restore work. IDE sends request through Quickl proxy successfully.
 

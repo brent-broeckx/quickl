@@ -64,6 +64,7 @@ export interface ModelPullProgress {
 
 export interface IDE {
   id: string
+  type: IDEType
   name: string
   installPath: string
   version: string | null
@@ -71,12 +72,34 @@ export interface IDE {
   configuredByQuickl: boolean
   configFilePath: string
   currentProviderId: string | null
+  supportStatus: 'supported' | 'detected-only'
+  supportMessage: string | null
 }
 
 export interface ConfigDiff {
+  ideId: string
+  providerId: string
   before: string
   after: string
   filePath: string
+  backupPath: string | null
+  generatedAt: string
+}
+
+export type IDEType =
+  | 'vscode'
+  | 'cursor'
+  | 'windsurf'
+  | 'zed'
+  | 'jetbrains'
+  | 'neovim'
+  | 'unknown'
+
+export interface IDEBackup {
+  ideId: string
+  backupPath: string
+  filePath: string
+  createdAt: string
 }
 
 // ============================================================================
@@ -309,6 +332,8 @@ export interface QuicklBridge {
     configure(ideId: string, providerId: string): Promise<ConfigDiff>
     applyConfig(ideId: string, diff: ConfigDiff): Promise<void>
     resetConfig(ideId: string): Promise<void>
+    listBackups(ideId: string): Promise<IDEBackup[]>
+    restoreBackup(ideId: string, backupPath: string): Promise<void>
   }
   mcp: {
     list(): Promise<MCPServer[]>

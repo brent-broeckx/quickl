@@ -3,6 +3,7 @@ import type {
     Provider,
     LocalModel,
     IDE,
+    IDEBackup,
     MCPServer,
     Profile
 } from '@shared/types'
@@ -16,6 +17,7 @@ interface StoreSchema {
   ides: IDE[]
   mcpServers: MCPServer[]
   profiles: Profile[]
+  ideBackups: IDEBackup[]
   settings: {
     theme: 'light' | 'dark' | 'system'
     startAtLogin: boolean
@@ -60,6 +62,7 @@ const defaultStore: StoreSchema = {
   ides: [],
   mcpServers: [],
   profiles: [],
+  ideBackups: [],
   settings: {
     theme: 'system',
     startAtLogin: false,
@@ -111,6 +114,10 @@ export const store = new Store<StoreSchema>({
       default: []
     },
     profiles: {
+      type: 'array',
+      default: []
+    },
+    ideBackups: {
       type: 'array',
       default: []
     },
